@@ -1,0 +1,178 @@
+// Variáveis da bolinha
+let xBolinha = 300;
+let yBolinha = 200;
+let diametro = 20;
+let raio = diametro / 2;
+
+// Variáveis das raquetes
+let xRaquete = 5;
+let yRaquete = 150;
+let xRaqueteOponente = 585;
+let yRaqueteOponente = 150;
+let raqueteComprimento = 10;
+let raqueteAltura = 90;
+let velocidadeOponente;
+
+// Velocidade da bolinha
+let velocidadeXBolinha = 6;
+let velocidadeYBolinha = 6;
+
+// Placar do jogo
+let meusPontos = 0;
+let pontosDoOponente = 0;
+const pontoMaximo = 10;
+
+// Estado do jogo
+let telaInicial = true;
+let dificuldade = 0;
+let fimDeJogo = false;
+
+function setup() {
+    createCanvas(600, 400);
+    frameRate(60);
+}
+
+function draw() {
+    background(0);
+    if (telaInicial) {
+        mostraTelaInicial();
+    } else if (fimDeJogo) {
+        mostraFimDeJogo();
+    } else {
+        jogo();
+    }
+}
+
+function mostraTelaInicial() {
+    fill(255);
+    textSize(32);
+    textAlign(CENTER);
+    text("Selecione a Dificuldade", width / 2, height / 3);
+    textSize(24);
+    text("1: Fácil", width / 2, height / 2);
+    text("2: Médio", width / 2, height / 2 + 40);
+    text("3: Difícil", width / 2, height / 2 + 80);
+}
+
+function keyPressed() {
+    if (telaInicial) {
+        if (keyCode === 49) { // Tecla 1
+            dificuldade = 0;
+            velocidadeXBolinha = 4;
+            velocidadeYBolinha = 4;
+            velocidadeOponente = 4;
+        } else if (keyCode === 50) { // Tecla 2
+            dificuldade = 1;
+            velocidadeXBolinha = 6;
+            velocidadeYBolinha = 6;
+            velocidadeOponente = 6;
+        } else if (keyCode === 51) { // Tecla 3
+            dificuldade = 2;
+            velocidadeXBolinha = 8;
+            velocidadeYBolinha = 8;
+            velocidadeOponente = 8;
+        }
+        telaInicial = false;
+    } else if (fimDeJogo && key === 'r') {
+        fimDeJogo = false;
+        meusPontos = 0;
+        pontosDoOponente = 0;
+        telaInicial = true;
+    }
+}
+
+function jogo() {
+    mostraBolinha();
+    movimentaBolinha();
+    verificaColisaoBorda();
+    mostraRaquete(xRaquete, yRaquete);
+    movimentaMinhaRaquete();
+    mostraRaquete(xRaqueteOponente, yRaqueteOponente);
+    movimentaRaqueteOponente();
+    verificaColisaoRaquete(xRaquete, yRaquete);
+    verificaColisaoRaquete(xRaqueteOponente, yRaqueteOponente);
+    incluiPlacar();
+    marcaPonto();
+}
+
+function mostraBolinha() {
+    circle(xBolinha, yBolinha, diametro);
+}
+
+function movimentaBolinha() {
+    xBolinha += velocidadeXBolinha;
+    yBolinha += velocidadeYBolinha;
+}
+
+function verificaColisaoBorda() {
+    if (xBolinha + raio > width || xBolinha - raio < 0) {
+        velocidadeXBolinha *= -1;
+    }
+    if (yBolinha + raio > height || yBolinha - raio < 0) {
+        velocidadeYBolinha *= -1;
+    }
+}
+
+function mostraRaquete(x, y) {
+    rect(x, y, raqueteComprimento, raqueteAltura);
+}
+
+function movimentaMinhaRaquete() {
+    if (keyIsDown(UP_ARROW) && yRaquete > 0) {
+        yRaquete -= 10;
+    }
+    if (keyIsDown(DOWN_ARROW) && yRaquete < height - raqueteAltura) {
+        yRaquete += 10;
+    }
+}
+
+function movimentaRaqueteOponente() {
+    let diff = yBolinha - (yRaqueteOponente + raqueteAltura / 2);
+    if (diff > 0 && yRaqueteOponente < height - raqueteAltura) {
+        yRaqueteOponente += min(10, diff);
+    } else if (diff < 0 && yRaqueteOponente > 0) {
+        yRaqueteOponente += max(-10, diff);
+    }
+}
+
+function verificaColisaoRaquete(x, y) {
+    if (xBolinha - raio < x + raqueteComprimento && xBolinha + raio > x &&
+        yBolinha + raio > y && yBolinha - raio < y + raqueteAltura) {
+        velocidadeXBolinha *= -1;
+    }
+}
+
+function incluiPlacar() {
+    fill(255);
+    textSize(16);
+    text(meusPontos, 170, 26);
+    text(pontosDoOponente, 430, 26);
+}
+
+function marcaPonto() {
+    if (xBolinha > width - raio) {
+        meusPontos++;
+        if (meusPontos >= pontoMaximo) fimDeJogo = true;
+        resetaBolinha();
+    }
+    if (xBolinha < raio) {
+        pontosDoOponente++;
+        if (pontosDoOponente >= pontoMaximo) fimDeJogo = true;
+        resetaBolinha();
+    }
+}
+
+function resetaBolinha() {
+    xBolinha = width / 2;
+    yBolinha = height / 2;
+    velocidadeXBolinha *= -1; // Inverte a direção da bolinha após pontuar
+}
+
+function mostraFimDeJogo() {
+    fill(255);
+    textSize(32);
+    textAlign(CENTER);
+    text("Fim de Jogo", width / 2, height / 2 - 20);
+    textSize(24);
+    text("Pressione 'R' para reiniciar", width / 2, height / 2 + 20);
+}
